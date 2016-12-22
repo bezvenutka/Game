@@ -5,13 +5,10 @@ import json
 from .game import RPSGame
 from .repositories.user_repository import UserRepository
 
+game = None
+
 
 class RPSHandler(socketserver.BaseRequestHandler):
-    def __init__(self, request, client_address, server):
-        super().__init__(request, client_address, server)
-        self.game = None
-        self.user_repository = UserRepository()
-
     def handle(self):
         data = self.request.recv(8192).strip()
         try:
@@ -20,18 +17,19 @@ class RPSHandler(socketserver.BaseRequestHandler):
             self.request.sendall(self.error('Not valid data!!!'))
 
     def create_game_action(self, data=None):
-        if self.game is None:
-            self.game = RPSGame(players_count=data.get('players_count', 2),
+        global game
+        if game is None:
+            game = RPSGame(players_count=data.get('players_count', 2),
                                 round_count=data.get('round_count', 1))
             return self.status_ok(text='Game successfully created')
         else:
             return self.error('Can`t create game. The game already going.')
 
     def status_action(self, data=None):
-        if self.game is None:
+        if game is None:
             return self.status_ok(text='The game does not exist yet.', is_exists=False)
         else:
-            if self.game.is_started is True:
+            if game.is_started is True:
                 return self.status_ok(text='Game already going',
                                       is_started=True, is_exists=True)
             else:
@@ -39,9 +37,9 @@ class RPSHandler(socketserver.BaseRequestHandler):
                                       is_started=False, is_exists=True)
 
     def join_action(self, data=None):
-        if self.game is not None:
-            if self.game.is_started is False:
-                self.game.add_player(data['username'])
+        if game is not None:
+            if game.is_started is False:
+                game.add_player(data['username'])
                 return self.status_ok(text='Successfully joined')
             else:
                 return self.error('Game already started')
@@ -50,12 +48,13 @@ class RPSHandler(socketserver.BaseRequestHandler):
 
     def make_move_action(self, data=None):
         move = data['move']
-        if move not in self.game.choices:
+        if move not in game.choices:
             return self.error('Not allowed choice')
-        self.game.make_move(data['username'], move)
+        game.make_move(data['username'], move)
+        return self.status_ok(text='move accepted')
 
     def game_status_action(self, data=None):
-        return self.status_ok(moves=self.game.moves, winners=self.game.round_winners)
+        return self.status_ok(moves=game.moves, winners=game.round_winners)
 
     def process_data(self, data):
         try:
@@ -83,18 +82,21 @@ class RPSHandler(socketserver.BaseRequestHandler):
 
     @classmethod
     def status_ok(cls, **kwargs):
-        return {'status': 'ok'}.update(kwargs)
+        result = {'status': 'ok'}
+        result.update(kwargs)
+        return json.dumps(result).encode()
 
     def check_user(self, data):
         username = data['username']
         password = data['password']
-        if self.user_repository.is_user_exist(username):
-            if self.user_repository.is_password_correct(username, password):
+        user_repository = UserRepository()
+        if user_repository.is_user_exist(username):
+            if user_repository.is_password_correct(username, password):
                 return True
             else:
                 raise ValueError('Invalid password')
         else:
-            self.user_repository.create_user(username, password)
+            user_repository.create_user(username, password)
             return True
 
 
@@ -115,4 +117,3 @@ class ServerThread(threading.Thread):
 def start_server(host='127.0.0.1', port=1488):
     server_thread = ServerThread(kwargs={'host': host, 'port': port})
     server_thread.start()
-    server_thread.stop_server()

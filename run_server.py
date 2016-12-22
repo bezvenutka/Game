@@ -12,7 +12,7 @@ def run_server():
     rps_server.start_server()
 
 
-class ClientWidget(QWidget):
+class ServerWidget(QWidget):
     def __init__(self, screen_resolution, widget_width=200, widget_height=200):
         super().__init__()
         self.resolution = screen_resolution
@@ -66,5 +66,5 @@ class ClientWidget(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     resolution = app.desktop().screenGeometry()
-    client_widget = ClientWidget(resolution)
+    client_widget = ServerWidget(resolution)
     sys.exit(app.exec_())
