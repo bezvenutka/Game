@@ -5,12 +5,12 @@ from .exceptions import UserAlreadyExistsError
 
 
 class UserRepository(GenericRepository):
-    table_info = ('users', 'username TEXT, password TEXT')
+    table_info = ('users', 'username TEXT, password TEXT, score INTEGER')
 
-    def new_user(self, username, password):
+    def create_user(self, username, password):
         if self.is_user_exist(username) is True:
             raise UserAlreadyExistsError
-        query = 'INSERT INTO users VALUES(?, ?)'
+        query = 'INSERT INTO users VALUES(?, ?, 0)'
         self.exec_query(query, (username, hashlib.sha256(password.encode()).hexdigest()))
 
     def is_user_exist(self, username):
