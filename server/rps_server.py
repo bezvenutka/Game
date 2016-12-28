@@ -51,6 +51,8 @@ class RPSHandler(socketserver.BaseRequestHandler):
         if move not in game.choices:
             return self.error('Not allowed choice')
         game.make_move(data['username'], move)
+        if game.round_winners:
+            return self.status_ok(text='move accepted', winners=game.round_winners)
         return self.status_ok(text='move accepted')
 
     def game_status_action(self, data=None):

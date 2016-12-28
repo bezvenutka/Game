@@ -7,11 +7,6 @@ from PyQt5.QtWidgets import QWidget, QPushButton, QApplication, QLineEdit, QLabe
 from server import rps_server
 
 
-def run_server():
-    print('Server run!!!')
-    rps_server.start_server()
-
-
 class ServerWidget(QWidget):
     def __init__(self, screen_resolution, widget_width=200, widget_height=200):
         super().__init__()
@@ -24,7 +19,7 @@ class ServerWidget(QWidget):
     def _init_ui(self):
         # Init button to start server
         start_button = QPushButton('Run server!!!', self)
-        start_button.clicked.connect(run_server)
+        start_button.clicked.connect(self.run_server)
         start_button.resize(start_button.sizeHint())
         start_button.setGeometry(20, 150, 160, 30)
 
@@ -43,6 +38,7 @@ class ServerWidget(QWidget):
         host_input_y = host_label_y + label_height
         host_line_input.setGeometry(elements_x, host_input_y, elements_width, 30)
         host_line_input.setText('127.0.0.1')
+        self.host_line_input = host_line_input
 
         port_label = QLabel(self)
         port_label.setText('Server port')
@@ -52,6 +48,7 @@ class ServerWidget(QWidget):
         port_input_y = port_label_y + label_height + 5
         port_line_input.setGeometry(elements_x, port_input_y, elements_width, 30)
         port_line_input.setText('1488')
+        self.port_line_input = port_line_input
 
         # Init self geometry
         x_position = (resolution.width() - self.width) / 2
@@ -61,6 +58,10 @@ class ServerWidget(QWidget):
         self.setWindowTitle('RockPaperStone Server')
 
         self.show()
+
+    def run_server(self):
+        print('Server run!!!')
+        rps_server.start_server(self.host_line_input.text(), int(self.port_line_input.text()))
 
 
 if __name__ == '__main__':

@@ -18,7 +18,7 @@ class RPSGame:
         self.rounds = []
         self.is_started = False
         self.current_round_moves = {}
-        self.round_winners = None
+        self.round_winners = []
         self.round_count = round_count
 
     def add_player(self, username):
@@ -32,7 +32,7 @@ class RPSGame:
             self.find_winner()
 
     def find_winner(self):
-        for k, v in self.moves:
+        for k, v in self.moves.items():
             if opponents[v] not in self.moves.values():
                 self.round_winners.append(k)
                 self.scores[k] = self.scores.get(k, 0) + self.current_round
